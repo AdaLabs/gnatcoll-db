@@ -22,7 +22,8 @@
 ------------------------------------------------------------------------------
 
 with "gnatcoll";
-with "gnatcoll_sql";
+with "../sql/gnatcoll_sql";
+with "rts";
 
 project GnatColl_Postgres is
 
@@ -38,8 +39,8 @@ project GnatColl_Postgres is
 
    for Library_Kind    use Library_Type;
    for Source_Dirs     use (".");
-   for Object_Dir      use "obj/" & Project'Library_Kind;
-   for Library_Dir     use "lib/" & Project'Library_Kind;
+   for Object_Dir      use "obj/" & RTS.RTS_Type & "-" & Project'Library_Kind;
+   for Library_Dir     use "lib/" & RTS.RTS_Type & "-" & Project'Library_Kind;
    for Library_Name    use Name;
    for Library_Version use "lib" & Name & Gnatcoll.So_Ext & "." & Version;
 
