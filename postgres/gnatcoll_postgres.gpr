@@ -23,7 +23,8 @@
 
 with "gnatcoll_postgres_conf.gpr";
 with "gnatcoll";
-with "gnatcoll_sql";
+with "../sql/gnatcoll_sql";
+with "rts";
 
 library project GnatColl_Postgres is
 
@@ -32,8 +33,8 @@ library project GnatColl_Postgres is
 
    for Library_Kind    use GnatColl_Postgres_Conf.Library_Type;
    for Source_Dirs     use (".");
-   for Object_Dir      use "obj/" & Project'Library_Kind;
-   for Library_Dir     use "lib/" & Project'Library_Kind;
+   for Object_Dir      use "obj/" & RTS.RTS_Type & "-" & Project'Library_Kind;
+   for Library_Dir     use "lib/" & RTS.RTS_Type & "-" & Project'Library_Kind;
    for Library_Name    use project'Name;
 
    case GnatColl_Postgres_Conf.Library_Type is

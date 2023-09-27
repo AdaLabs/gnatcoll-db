@@ -50,6 +50,7 @@
 CAT := cat
 ECHO  := echo
 WHICH := which
+DESTDIR?=
 
 NAME=gnatcoll_sqlite
 
@@ -90,7 +91,7 @@ all: build
 GTARGET=--target=$(NORMALIZED_TARGET)
 
 ifeq ($(ENABLE_SHARED), yes)
-   LIBRARY_TYPES=static relocatable static-pic
+   LIBRARY_TYPES=static relocatable
 else
    LIBRARY_TYPES=static
 endif
@@ -110,8 +111,8 @@ GPRBUILD_OPTIONS=
 BUILDER=gprbuild -p -m $(GTARGET) $(RBD) -j$(PROCESSORS) $(GPR_VARS) \
 	$(GPRBUILD_OPTIONS)
 INSTALLER=gprinstall -p -f --target=$(TARGET) $(GPR_VARS) \
-	$(RBD) --sources-subdir=include/$(NAME) --prefix=$(prefix)$(integrated_install)
-CLEANER=gprclean -q $(RBD)
+	$(RBD) --sources-subdir=include/$(NAME) --prefix=$(DESTDIR)$(prefix)$(integrated_install)
+CLEANER=gprclean -q $(RBD) $(GPR_VARS)
 UNINSTALLER=$(INSTALLER) -p -f --install-name=$(NAME) --uninstall
 
 #########
@@ -119,35 +120,58 @@ UNINSTALLER=$(INSTALLER) -p -f --install-name=$(NAME) --uninstall
 #########
 
 build: $(LIBRARY_TYPES:%=build-%)
+	make build-rts-adalabs-static
 
 build-%:
-	$(BUILDER) -XLIBRARY_TYPE=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
-		$(GPR_VARS) $(GNATCOLL_GPR) $(GPR_OPTIONS)
+	$(BUILDER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		$(GNATCOLL_GPR) -XRTS_TYPE=default
+
+build-rts-adalabs-%:
+	$(BUILDER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		$(GNATCOLL_GPR) -XRTS_TYPE=adalabs --RTS=adalabs
 
 ###########
 # Install #
 ###########
 
 uninstall:
-ifneq (,$(wildcard $(prefix)/share/gpr/manifests/$(NAME)))
+ifneq (,$(wildcard $(DESTDIR)$(prefix)/share/gpr/manifests/$(NAME)))
 	$(UNINSTALLER) $(GNATCOLL_GPR)
 endif
 
 install: uninstall $(LIBRARY_TYPES:%=install-%)
-
+	make install-rts-adalabs-static
+	mkdir -p $(DESTDIR)$(prefix)/bin
+	sed -i 's/with \"gpr\";/with \"gpr\";\nwith \"rts\";/' $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
+	sed -i 's/BUILD : BUILD_KIND := external(\"LIBRARY_TYPE\", \"static\");/BUILD : BUILD_KIND := external(\"GNATCOLL_DB_BUILD\", external(\"GNATCOLL_BUILD\", \"static\"));/' $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
+	sed -i 's/for Languages use (\"Ada\");/for Languages use (\"Ada\");\n   case RTS.RTS_Type is\n      when \"adalabs\" =>\n         BUILD := \"rts-adalabs\";\n      when others =>\n         null;\n   end case;/'    $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
+	
 install-%:
-	$(INSTALLER) -XLIBRARY_TYPE=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
-		--build-name=$* --build-var=LIBRARY_TYPE $(GPR_VARS) $(GNATCOLL_GPR)
+	$(INSTALLER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		--build-name=$* --build-var=LIBRARY_TYPE $(GNATCOLL_GPR) -XRTS_TYPE=default
+
+install-rts-adalabs-%:
+	$(INSTALLER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		--build-name=rts-adalabs \
+		--build-var=LIBRARY_TYPE \
+		$(GNATCOLL_GPR) -XRTS_TYPE=adalabs --RTS=adalabs
+
 
 ###########
 # Cleanup #
 ###########
 
 clean: $(LIBRARY_TYPES:%=clean-%)
+	make clean-rts-adalabs-static
 
 clean-%:
-	-$(CLEANER) -XLIBRARY_TYPE=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
-		$(GPR_VARS) $(GNATCOLL_GPR)
+	-$(CLEANER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		$(GNATCOLL_GPR)
+
+clean-rts-adalabs-%:
+	-$(CLEANER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* \
+		$(GNATCOLL_GPR) -XRTS_TYPE=adalabs --RTS=adalabs
+
 
 #########
 # setup #

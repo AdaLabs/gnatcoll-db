@@ -23,6 +23,7 @@
 
 with "gnatcoll_sql_conf.gpr";
 with "gnatcoll";
+with "rts";
 
 library project GnatColl_SQL is
 
@@ -32,9 +33,9 @@ library project GnatColl_SQL is
    for Library_Kind    use GnatColl_Sql_Conf.Library_Type;
    for Source_Dirs use (".");
    for Object_Dir
-      use "obj/" & Project'Library_Kind;
+      use "obj/" & RTS.RTS_Type & "-" & Project'Library_Kind;
    for Library_Dir
-      use "lib/" & Project'Library_Kind;
+      use "lib/" & RTS.RTS_Type & "-" & Project'Library_Kind;
    for Library_Name    use project'Name;
    for Languages use ("Ada");
 
