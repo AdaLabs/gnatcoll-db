@@ -23,7 +23,8 @@
 
 with "gnatcoll_sqlite_conf.gpr";
 with "gnatcoll_core";
-with "gnatcoll_sql";
+with "../sql/gnatcoll_sql";
+with "rts";
 
 library project GnatColl_Sqlite is
 
@@ -32,8 +33,8 @@ library project GnatColl_Sqlite is
    OS      := External ("OS", "unix");
 
    for Library_Kind    use GnatColl_Sqlite_Conf.Library_Type;
-   for Object_Dir      use "obj/" & Project'Library_Kind;
-   for Library_Dir     use "lib/" & Project'Library_Kind;
+   for Object_Dir      use "obj/" & RTS.RTS_Type & "-" & Project'Library_Kind;
+   for Library_Dir     use "lib/" & RTS.RTS_Type & "-" & Project'Library_Kind;
    for Library_Name    use project'Name;
 
    Thread_Lib := ();
