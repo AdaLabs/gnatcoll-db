@@ -142,9 +142,6 @@ endif
 install: uninstall $(LIBRARY_TYPES:%=install-%)
 	make install-rts-adalabs-static
 	mkdir -p $(DESTDIR)$(prefix)/bin
-	sed -i 's/with \"gpr\";/with \"gpr\";\nwith \"rts\";/' $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
-	sed -i 's/BUILD : BUILD_KIND := external(\"LIBRARY_TYPE\", \"static\");/BUILD : BUILD_KIND := external(\"GNATCOLL_DB_BUILD\", external(\"GNATCOLL_BUILD\", \"static\"));/' $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
-	sed -i 's/for Languages use (\"Ada\");/for Languages use (\"Ada\");\n   case RTS.RTS_Type is\n      when \"adalabs\" =>\n         BUILD := \"rts-adalabs\";\n      when others =>\n         null;\n   end case;/'    $(DESTDIR)$(prefix)/share/gpr/gnatcoll_sql.gpr
 	
 install-%:
 	$(INSTALLER) -XLIBRARY_TYPE=$* -XGNATCOLL_BUILD=$* -XXMLADA_BUILD=$* -XGPR_BUILD=$* -XBUILD_TYPE=$* \
